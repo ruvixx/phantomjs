@@ -12,6 +12,17 @@
 
 include_recipe "apt::default"
 
+node['apt']['repositories'].each do |pkg|
+  f = apt_repository pkg['name'] do
+    action :nothing
+  end
+  pkg.each do |key, value|
+    f.send(key, value) unless key == 'name' || key == 'action'
+  end
+  action = pkg.key?('action') ? pkg['action'] : :add
+  f.action(action)
+end if node['apt'].key?('repositories')
+
 node['apt']['packages'].each do |pkg|
   f = package pkg['name'] do
     action :nothing
@@ -22,15 +33,3 @@ node['apt']['packages'].each do |pkg|
   action = pkg.key?('action') ? pkg['action'] : :upgrade
   f.action(action)
 end if node['apt'].key?('packages')
-
-node['apt']['repositories'].each do |pkg|
-  f = apt_repository pkg['name'] do
-    action :nothing
-  end
-  pkg.each do |key, value|
-    f.send(key, value) unless key == 'name' || key == 'action'
-  end
-  action = pkg.key?('action') ? pkg['action'] : :add
-  puts 'test action', action
-  f.action(action)
-end if node['apt'].key?('repositories')
