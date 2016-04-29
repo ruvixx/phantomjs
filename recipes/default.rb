@@ -7,29 +7,9 @@
 # All rights reserved - Do Not Redistribute
 #
 
-# So we install packages with sudo
-# Chef::Provider::Package::Apt.send(:include, CustomApt::UseSudo)
-
-include_recipe "apt::default"
-
-node['apt']['repositories'].each do |pkg|
-  f = apt_repository pkg['name'] do
-    action :nothing
-  end
-  pkg.each do |key, value|
-    f.send(key, value) unless key == 'name' || key == 'action'
-  end
-  action = pkg.key?('action') ? pkg['action'] : :add
-  f.action(action)
-end if node['apt'].key?('repositories')
-
-node['apt']['packages'].each do |pkg|
-  f = package pkg['name'] do
-    action :nothing
-  end
-  pkg.each do |key, value|
-    f.send(key, value) unless key == 'name' || key == 'action'
-  end
-  action = pkg.key?('action') ? pkg['action'] : :upgrade
-  f.action(action)
-end if node['apt'].key?('packages')
+execute 'Install phantomjs' do
+  command 'wget https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-2.1.1-linux-x86_64.tar.bz2 && \
+           tar xjf phantomjs-2.1.1-linux-x86_64.tar.bz2 && \
+           mv phantomjs-2.1.1-linux-x86_64/bin/phantomjs /usr/bin/phantomjs && \
+           rm phantomjs-2.1.1-linux-x86_64.tar.bz2 && rm -rf phantomjs-2.1.1-linux-x86_64'
+end
