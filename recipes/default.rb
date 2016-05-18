@@ -1,15 +1,30 @@
 #
-# Cookbook Name:: apt-packages
+# Cookbook Name:: phantomjs
 # Recipe:: default
 #
-# Copyright 2015, Hai Phan
+# Copyright 2016, Jonathan Newman
 #
 # All rights reserved - Do Not Redistribute
 #
 
-execute 'Install phantomjs' do
-  command 'wget https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-2.1.1-linux-x86_64.tar.bz2 && \
-           tar xjf phantomjs-2.1.1-linux-x86_64.tar.bz2 && \
-           mv phantomjs-2.1.1-linux-x86_64/bin/phantomjs /usr/bin/phantomjs && \
-           rm phantomjs-2.1.1-linux-x86_64.tar.bz2 && rm -rf phantomjs-2.1.1-linux-x86_64'
+version = node[:phantomjs][:version]
+install_dir = "#{node[:phantomjs][:install_dir]}/phantomjs"
+tarball = "phantomjs-#{version}-linux-x86_64.tar.bz2"
+
+remote_file "#{node[:phantomjs][:download_dir]}/#{tarball}" do
+  source "#{node[:phantomjs][:download_url]}/#{tarball}"
+  owner 'root'
+  group 'root'
+  mode '0755'
+  not_if { ::File.exists?(install_dir) }
+end
+
+bash 'install_phantomjs' do
+  user 'root'
+  cwd "#{node[:phantomjs][:download_dir]}"
+  code <<-EOH
+    tar xjf #{tarball}
+    mv #{tarball.gsub(/\.tar.+$/, '')}/bin/phantomjs #{install_dir}
+  EOH
+  not_if { ::File.exists?(install_dir) }
 end
